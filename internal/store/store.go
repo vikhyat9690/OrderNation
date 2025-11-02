@@ -24,3 +24,13 @@ func (s *Store) GetStock(ctx context.Context, outletId, productId int64) ([]int6
 	}
 	return []int64{qty, salableQty}, nil
 }
+
+func (s *Store) UpdateStock(ctx context.Context, outletId, productId, delta int64) (string, error) {
+	_, err := s.DB.ExecContext(ctx,
+		`UPDATE Stock SET salable_quantity = salable_quantity + $3 WHERE outlet_id=$1 AND product_id=$2`,
+		outletId, productId, delta)
+	if err != nil {
+		return "", err
+	}
+	return "Stock Updated Successfully", nil
+}

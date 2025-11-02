@@ -1,38 +1,23 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
+	"net/http"
+	"ordernationn/cmd/db"
+	"ordernationn/handlers"
 	"ordernationn/internal/service"
 	"ordernationn/internal/store"
-	"os"
-
-	_ "github.com/lib/pq"
 )
 
 func main() {
-	//Connection to PostgreSQL
-	username := os.Getenv("DB_USER")
-	// pasword := os.Getenv("PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-
-	connStr := fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable", username, host, port, dbname)
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	dberr := db.Ping()
-	if dberr != nil {
-		log.Fatal("Error connecting to database: ", err)
-	}
-	s := &store.Store{DB: db}
+	dbConn := db.DbConnection()
+	defer dbConn.Close()
+	s := &store.Store{DB: dbConn}
 	svc := &service.OrderService{Store: s}
+	handler := handlers.NewOrderHandler(svc)
 
-	fmt.Println("System initialized. Ready For processes")
-	_ = svc
+	http.HandleFunc("/place-order", handler.PlaceOrder())
+	
+	log.Println("Server running on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
