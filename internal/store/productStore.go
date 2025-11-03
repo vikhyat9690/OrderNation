@@ -38,7 +38,7 @@ func NewSQLProductRepository(db *sql.DB) *SQLProductRepository {
 
 // Find all implements the ProductRepository interface
 func (r *SQLProductRepository) FindAll() ([]domain.Product, error) {
-	columnList := `id, sku, name, short_description, long_description, price, special_price, created_at, updated_at`
+	columnList := `id, sku, name, short_description, long_description, price, special_price, created_at, updated_at, base_image_url`
 	query := fmt.Sprintf(`SELECT %s FROM "Product"`, columnList)
 	rows, err := r.DB.Query(query)
 	if err != nil {
@@ -51,7 +51,7 @@ func (r *SQLProductRepository) FindAll() ([]domain.Product, error) {
 		var p domain.Product
 		err := rows.Scan(
 			&p.ID, &p.Sku, &p.Name, &p.Short_Description, &p.Long_Description, &p.Price, &p.Special_Price,
-			&p.Created_At, &p.Updated_At,
+			&p.Created_At, &p.Updated_At, &p.Base_Image_Url,
 		)
 		if err != nil {
 			return []domain.Product{}, err
@@ -63,12 +63,12 @@ func (r *SQLProductRepository) FindAll() ([]domain.Product, error) {
 
 // Find by id implements the ProductRepository interface.
 func (r *SQLProductRepository) FindById(id int64) (domain.Product, error) {
-	columnList := `id, sku, name, short_description, long_description, price, special_price, created_at, updated_at`
+	columnList := `id, sku, name, short_description, long_description, price, special_price, created_at, updated_at, base_image_url`
 	query := fmt.Sprintf(`SELECT %s FROM "Product" WHERE id=$1`, columnList)
 	resultProduct := r.DB.QueryRow(query, id)
 	var p domain.Product
 	scanErr := resultProduct.Scan(&p.ID, &p.Sku, &p.Name, &p.Short_Description, &p.Long_Description, &p.Price, &p.Special_Price,
-		&p.Created_At, &p.Updated_At)
+		&p.Created_At, &p.Updated_At, &p.Base_Image_Url)
 	if errors.Is(scanErr, sql.ErrNoRows) {
 		return domain.Product{}, nil
 	}

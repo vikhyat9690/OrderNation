@@ -15,6 +15,7 @@ type Product struct {
 	Special_Price     sql.NullFloat64 `json:"special_price"`
 	Created_At        time.Time       `json:"created_at"`
 	Updated_At        time.Time       `json:"updated_at"`
+	Base_Image_Url    sql.NullString  `json:"base_image_url"`
 }
 
 type ProductRepository interface {
