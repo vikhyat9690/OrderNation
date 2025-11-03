@@ -1,17 +1,27 @@
 package domain
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type Product struct {
-	ID                int64
-	Name              string
-	Sku               string
-	Short_Description string
-	Long_Description  string
-	Price             float32
-	Special_Price     float32
-	Created_At        time.Time
-	Updated_At        time.Time
+	ID                int64           `json:"id"`
+	Name              string          `json:"name"`
+	Sku               string          `json:"sku"`
+	Short_Description sql.NullString  `json:"short_description"`
+	Long_Description  sql.NullString  `json:"long_description"`
+	Price             float32         `json:"price"`
+	Special_Price     sql.NullFloat64 `json:"special_price"`
+	Created_At        time.Time       `json:"created_at"`
+	Updated_At        time.Time       `json:"updated_at"`
+}
+
+type ProductRepository interface {
+	FindAll() ([]Product, error)
+	FindById(id int64) (Product, error)
+	// Add(product Product) (Product, error)
+	// Update(product Product) (Product, error)
 }
 
 type Stock struct {

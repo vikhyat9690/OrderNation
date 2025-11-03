@@ -24,18 +24,17 @@ func DbConnection() *sql.DB {
 	connStr := fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable", username, host, port, dbname)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error opening database: %v", err)
 	}
-	defer db.Close()
+
+	// --- REMOVED: defer db.Close() ---
 
 	dberr := db.Ping()
 	if dberr != nil {
-		log.Fatal("Error connecting to database: ", err)
+		// Use log.Fatalf here to print the error and exit
+		log.Fatalf("Error connecting to database: %v", dberr)
 	}
-	// s := &store.Store{DB: db}
-	// svc := &service.OrderService{Store: s}
 
 	fmt.Println("DB connected")
-	// _ = svc
 	return db
 }

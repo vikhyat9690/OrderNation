@@ -1,23 +1,32 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
 	"ordernationn/cmd/db"
-	"ordernationn/handlers"
+	"ordernationn/internal/handlers"
 	"ordernationn/internal/service"
 	"ordernationn/internal/store"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	dbConn := db.DbConnection()
 	defer dbConn.Close()
-	s := &store.Store{DB: dbConn}
-	svc := &service.OrderService{Store: s}
-	handler := handlers.NewOrderHandler(svc)
+	productStore := store.NewSQLProductRepository(dbConn)
+	ProductService := service.NewProductService(productStore)
+	productHandler := handlers.NewProductHandler(ProductService)
+	router := gin.Default()
+	router.SetTrustedProxies([]string{"192.168.1.255"})
 
-	http.HandleFunc("/place-order", handler.PlaceOrder())
-	
+	router.GET("/products", productHandler.GetAllProducts, GetClientIP)
+	router.GET("/product", productHandler.GetProductById, GetClientIP)
+
 	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(router.Run(":8080"))
+}
+
+func GetClientIP(ctx *gin.Context) {
+	fmt.Printf("Client IP: %s", ctx.ClientIP())
 }
