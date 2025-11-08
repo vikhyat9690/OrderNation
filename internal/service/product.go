@@ -9,7 +9,7 @@ import (
 type ProductService interface {
 	GetAll() ([]domain.Product, error)
 	GetById(id int64) (domain.Product, error)
-	// Create(product domain.Product) (domain.Product, error)
+	Create(product domain.Product) (domain.Product, error)
 	// Update(product domain.Product) (domain.Product, error)
 }
 
@@ -37,6 +37,30 @@ func (s *productService) GetById(id int64) (domain.Product, error) {
 		return domain.Product{}, errors.New("no valid product found")
 	}
 	return product, nil
+}
+
+func (s *productService) Create(p domain.Product) (domain.Product, error) {
+	if p.Sku == "" || p.Name == "" || p.Price == 0 {
+		return domain.Product{}, errors.New("sku, price and the name are required")
+	}
+	if p.Special_Price.Valid {
+		if p.Special_Price.Float64 <= 0 {
+			return domain.Product{}, errors.New("special price must be greater than 0")
+		}
+		if float32(p.Special_Price.Float64) >= p.Price {
+			return domain.Product{}, errors.New("special price cannot be greater than or equal to price")
+		}
+	}
+	createdProduct, err := s.repo.Add(p)
+	if err != nil {
+		return domain.Product{}, err
+	}
+
+	if createdProduct.ID == 0 {
+		return domain.Product{}, errors.New("failed to create product")
+	}
+
+	return p, nil
 }
 
 // func (s *productService) GetById(id int64) (domain.Product, error) {

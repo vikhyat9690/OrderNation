@@ -21,7 +21,7 @@ type Product struct {
 type ProductRepository interface {
 	FindAll() ([]Product, error)
 	FindById(id int64) (Product, error)
-	// Add(product Product) (Product, error)
+	Add(product Product) (Product, error)
 	// Update(product Product) (Product, error)
 }
 

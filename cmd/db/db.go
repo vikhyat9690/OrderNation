@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -14,6 +15,7 @@ type DB struct {
 }
 
 func DbConnection() *sql.DB {
+	_ = godotenv.Load()
 	//Connection to PostgreSQL
 	username := os.Getenv("DB_USER")
 	// pasword := os.Getenv("PASSWORD")

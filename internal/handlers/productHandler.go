@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
+	"ordernationn/internal/domain"
 	"ordernationn/internal/service"
 	"strconv"
 
@@ -46,4 +48,51 @@ func (h *ProductHandler) GetProductById(c *gin.Context) {
 		return
 	}
 	c.IndentedJSON(http.StatusOK, product)
+}
+
+func (h *ProductHandler) Create(c *gin.Context) {
+	var req struct {
+		Sku              string  `json:"sku"`
+		Name             string  `json:"name"`
+		ShortDescription string  `json:"short_description"`
+		LongDescription  string  `json:"long_description"`
+		Price            float32 `json:"price"`
+		SpecialPrice     float64 `json:"special_price"`
+		BaseImageUrl     string  `json:"base_image_url"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid json input"})
+		return
+	}
+
+	product := domain.Product{
+		Sku:  req.Sku,
+		Name: req.Name,
+		Short_Description: sql.NullString{
+			String: req.ShortDescription,
+			Valid:  req.ShortDescription != "",
+		},
+		Long_Description: sql.NullString{
+			String: req.LongDescription,
+			Valid:  req.LongDescription != "",
+		},
+		Price: req.Price,
+		Special_Price: sql.NullFloat64{
+			Float64: req.SpecialPrice,
+			Valid:   req.SpecialPrice != 0,
+		},
+		Base_Image_Url: sql.NullString{
+			String: req.BaseImageUrl,
+			Valid:  req.BaseImageUrl != "",
+		},
+	}
+
+	createdProduct, err := h.service.Create(product)
+	if err != nil {
+		log.Println(err)
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.IndentedJSON(http.StatusCreated, createdProduct)
 }

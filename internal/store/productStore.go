@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"ordernationn/internal/domain"
+	"time"
 )
 
 type ProductStore struct {
@@ -79,14 +80,36 @@ func (r *SQLProductRepository) FindById(id int64) (domain.Product, error) {
 }
 
 // // Add product implementation
-// func (r *ProductStore) Add(newProduct domain.Product) (domain.Product, error) {
-// 	newProduct.ID = r.nextId
-// 	newProduct.Created_At = time.Now()
-// 	newProduct.Updated_At = time.Now()
-// 	r.products[r.nextId] = newProduct
-// 	r.nextId++
-// 	return newProduct, nil
-// }
+func (r *SQLProductRepository) Add(product domain.Product) (domain.Product, error) {
+	now := time.Now()
+	query := `
+		INSERT INTO "Product"
+			(sku, name, short_description, long_description, price, special_price, created_at, updated_at, base_image_url)
+		VALUES
+			($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id, created_at, updated_at
+	`
+	err := r.DB.QueryRow(
+		query,
+		product.Sku,
+		product.Name,
+		product.Short_Description.String,
+		product.Long_Description.String,
+		product.Price,
+		product.Special_Price.Float64,
+		now,
+		now,
+		product.Base_Image_Url.String,
+	).Scan(&product.ID, &product.Created_At, &product.Updated_At)
+
+	if err != nil {
+		return domain.Product{}, err
+	}
+	product.Created_At = now
+	product.Updated_At = now
+
+	return product, nil
+}
 
 // // Update implements the ProductRepository interface
 // func (r *ProductStore) Update(product domain.Product) (domain.Product, error) {
